@@ -89,6 +89,7 @@
   .source-item input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
   .source-item .name { font-size: 13px; font-weight: 500; }
   .source-item .url { font-size: 11px; color: var(--muted); }
+  .source-item .since { font-size: 10px; font-weight: 400; color: var(--muted); margin-left: 4px; }
   .mode-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .mode-tab {
     flex: 1;
@@ -209,81 +210,85 @@
     <div>
       <label class="block">Sources</label>
       <div class="source-grid">
+
+        <!-- El Pingüino first, unchecked — different method, requires date range -->
+        <label class="source-item" title="Requires a date range. Uses JSON API for discovery + individual page fetch per article. Slower on bulk.">
+          <input type="checkbox" name="sources" value="elpinguino">
+          <div>
+            <div class="name">El Ping&uuml;ino <span class="since">desde 2009</span></div>
+            <div class="url">elpinguino.com &mdash; JSON API + art. pages &mdash; <em>requiere rango de fechas</em></div>
+          </div>
+        </label>
+
         <label class="source-item">
           <input type="checkbox" name="sources" value="laprensaaustral" checked>
           <div>
-            <div class="name">La Prensa Austral</div>
+            <div class="name">La Prensa Austral <span class="since">desde 2020</span></div>
             <div class="url">laprensaaustral.cl &mdash; WP API</div>
           </div>
         </label>
         <label class="source-item">
-          <input type="checkbox" name="sources" value="elpinguino" checked>
+          <input type="checkbox" name="sources" value="dialogosur" checked>
           <div>
-            <div class="name">El Ping&uuml;ino</div>
-            <div class="url">elpinguino.com &mdash; JSON API + article pages</div>
-          </div>
-        </label>
-        <label class="source-item">
-          <input type="checkbox" name="sources" value="elmagallanico" checked>
-          <div>
-            <div class="name">El Magall&aacute;nico</div>
-            <div class="url">elmagallanico.com &mdash; WP API</div>
+            <div class="name">Di&aacute;logo Sur <span class="since">desde 2010</span></div>
+            <div class="url">dialogosur.cl &mdash; WP API</div>
           </div>
         </label>
         <label class="source-item">
           <input type="checkbox" name="sources" value="ovejeronoticias" checked>
           <div>
-            <div class="name">Ovejero Noticias</div>
+            <div class="name">Ovejero Noticias <span class="since">desde 2015</span></div>
             <div class="url">ovejeronoticias.cl &mdash; WP API</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="elmagallanico" checked>
+          <div>
+            <div class="name">El Magall&aacute;nico <span class="since">desde 2017</span></div>
+            <div class="url">elmagallanico.com &mdash; WP API</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="pepenoticias" checked>
+          <div>
+            <div class="name">Pepe Noticias <span class="since">desde 2020</span></div>
+            <div class="url">pepenoticias.cl &mdash; WP API</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="itvpatagonia" checked>
+          <div>
+            <div class="name">ITV Patagonia <span class="since">desde 2023</span></div>
+            <div class="url">itvpatagonia.com &mdash; WP API</div>
           </div>
         </label>
         <label class="source-item">
           <input type="checkbox" name="sources" value="sosmagallanes" checked>
           <div>
-            <div class="name">SOS Magallanes</div>
+            <div class="name">SOS Magallanes <span class="since">desde 2025</span></div>
             <div class="url">sosmagallanes.cl &mdash; WP API</div>
           </div>
         </label>
         <label class="source-item">
           <input type="checkbox" name="sources" value="radiomagallanes" checked>
           <div>
-            <div class="name">Radio Magallanes</div>
+            <div class="name">Radio Magallanes <span class="since">desde 2025</span></div>
             <div class="url">radiomagallanes.cl &mdash; WP API</div>
           </div>
         </label>
-        <label class="source-item">
-          <input type="checkbox" name="sources" value="pepenoticias" checked>
-          <div>
-            <div class="name">Pepe Noticias</div>
-            <div class="url">pepenoticias.cl &mdash; WP API</div>
-          </div>
-        </label>
-        <label class="source-item">
-          <input type="checkbox" name="sources" value="dialogosur" checked>
-          <div>
-            <div class="name">Di&aacute;logo Sur</div>
-            <div class="url">dialogosur.cl &mdash; WP API (crawl-delay 5s)</div>
-          </div>
-        </label>
-        <label class="source-item">
-          <input type="checkbox" name="sources" value="itvpatagonia" checked>
-          <div>
-            <div class="name">ITV Patagonia</div>
-            <div class="url">itvpatagonia.com &mdash; WP API (browser UA)</div>
-          </div>
-        </label>
+
         <label class="source-item" style="opacity:.4;cursor:not-allowed" title="Not supported — JS-rendered listing, locked proprietary CMS API. See scrapers/radiopolar.py.">
           <input type="checkbox" name="sources" value="radiopolar" disabled>
           <div>
-            <div class="name">Radio Polar <span style="font-size:10px;color:var(--err);font-weight:400">(not supported)</span></div>
-            <div class="url">radiopolar.com &mdash; needs Playwright</div>
+            <div class="name">Radio Polar <span style="font-size:10px;color:var(--err);font-weight:400">(no soportado)</span></div>
+            <div class="url">radiopolar.com &mdash; necesita Playwright</div>
           </div>
         </label>
         <label class="source-item" style="opacity:.4;cursor:not-allowed" title="Not supported — Cloudflare blocks access, WP REST API returns 404. See README.">
           <input type="checkbox" name="sources" value="elmagallanews" disabled>
           <div>
-            <div class="name">El Magallanews <span style="font-size:10px;color:var(--warn);font-weight:400">(needs exploring)</span></div>
-            <div class="url">elmagallanews.cl &mdash; Cloudflare, no API</div>
+            <div class="name">El Magallanews <span style="font-size:10px;color:var(--warn);font-weight:400">(por explorar)</span></div>
+            <div class="url">elmagallanews.cl &mdash; Cloudflare, sin API</div>
           </div>
         </label>
       </div>
