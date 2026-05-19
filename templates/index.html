@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CulpemCorpus</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3a;
+    --accent: #e8733a;
+    --accent2: #c45a2a;
+    --text: #d4d8e8;
+    --muted: #6b7094;
+    --ok: #4caf7d;
+    --warn: #e8b43a;
+    --err: #e05252;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+  header {
+    padding: 20px 32px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  header h1 { font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: .5px; }
+  header p { color: var(--muted); font-size: 12px; }
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 0;
+    height: calc(100vh - 65px);
+  }
+  .panel {
+    padding: 20px 20px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .main {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: hidden;
+  }
+  label.block { display: block; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); }
+  input[type=text], input[type=date], input[type=number], select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .source-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .source-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .source-item:hover { border-color: var(--accent); background: rgba(232,115,58,.05); }
+  .source-item input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+  .source-item .name { font-size: 13px; font-weight: 500; }
+  .source-item .url { font-size: 11px; color: var(--muted); }
+  .mode-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .mode-tab {
+    flex: 1;
+    padding: 7px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    transition: background .15s, color .15s;
+  }
+  .mode-tab.active { background: var(--accent); color: #fff; }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  #query-section { transition: opacity .2s; }
+  .format-row { display: flex; gap: 8px; }
+  .format-btn {
+    flex: 1;
+    padding: 7px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color .15s, color .15s;
+  }
+  .format-btn.active { border-color: var(--accent); color: var(--accent); }
+  details summary { cursor: pointer; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; list-style: none; }
+  details summary::before { content: '+ '; }
+  details[open] summary::before { content: '− '; }
+  details .detail-body { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .btn-scrape {
+    width: 100%;
+    padding: 11px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .3px;
+    transition: background .15s;
+  }
+  .btn-scrape:hover { background: var(--accent2); }
+  .btn-scrape:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  /* Right panel */
+  .log-header { display: flex; align-items: center; justify-content: space-between; }
+  .log-header h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); }
+  #clear-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; }
+  #clear-btn:hover { color: var(--text); }
+  #log {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    overflow-y: auto;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .log-line { padding: 1px 0; }
+  .log-line.info  { color: var(--text); }
+  .log-line.warn  { color: var(--warn); }
+  .log-line.error { color: var(--err); }
+  .log-line.ok    { color: var(--ok); }
+  .log-line.prog  { color: var(--muted); }
+  #result-box {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    background: var(--surface);
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  #result-box.visible { display: flex; }
+  #result-stats { font-size: 13px; }
+  #result-stats strong { color: var(--ok); font-size: 16px; }
+  .btn-download {
+    padding: 8px 18px;
+    background: var(--ok);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity .15s;
+  }
+  .btn-download:hover { opacity: .85; }
+  .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--muted); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🦊 CulpemCorpus</h1>
+  <p>Magallanes regional media scraper &mdash; academic use</p>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: controls -->
+  <div class="panel">
+
+    <div>
+      <label class="block">Sources</label>
+      <div class="source-grid">
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="laprensaaustral" checked>
+          <div>
+            <div class="name">La Prensa Austral</div>
+            <div class="url">laprensaaustral.cl &mdash; WP API</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="elpinguino" checked>
+          <div>
+            <div class="name">El Ping&uuml;ino</div>
+            <div class="url">elpinguino.com &mdash; JSON API + article pages</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="elmagallanico" checked>
+          <div>
+            <div class="name">El Magall&aacute;nico</div>
+            <div class="url">elmagallanico.com &mdash; WP API</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="ovejeronoticias" checked>
+          <div>
+            <div class="name">Ovejero Noticias</div>
+            <div class="url">ovejeronoticias.cl &mdash; WP API</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="sosmagallanes" checked>
+          <div>
+            <div class="name">SOS Magallanes</div>
+            <div class="url">sosmagallanes.cl &mdash; WP API</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="radiomagallanes" checked>
+          <div>
+            <div class="name">Radio Magallanes</div>
+            <div class="url">radiomagallanes.cl &mdash; WP API</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="pepenoticias" checked>
+          <div>
+            <div class="name">Pepe Noticias</div>
+            <div class="url">pepenoticias.cl &mdash; WP API</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="dialogosur" checked>
+          <div>
+            <div class="name">Di&aacute;logo Sur</div>
+            <div class="url">dialogosur.cl &mdash; WP API (crawl-delay 5s)</div>
+          </div>
+        </label>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="itvpatagonia" checked>
+          <div>
+            <div class="name">ITV Patagonia</div>
+            <div class="url">itvpatagonia.com &mdash; WP API (browser UA)</div>
+          </div>
+        </label>
+        <label class="source-item" style="opacity:.4;cursor:not-allowed" title="Not supported — JS-rendered listing, locked proprietary CMS API. See scrapers/radiopolar.py.">
+          <input type="checkbox" name="sources" value="radiopolar" disabled>
+          <div>
+            <div class="name">Radio Polar <span style="font-size:10px;color:var(--err);font-weight:400">(not supported)</span></div>
+            <div class="url">radiopolar.com &mdash; needs Playwright</div>
+          </div>
+        </label>
+        <label class="source-item" style="opacity:.4;cursor:not-allowed" title="Not supported — Cloudflare blocks access, WP REST API returns 404. See README.">
+          <input type="checkbox" name="sources" value="elmagallanews" disabled>
+          <div>
+            <div class="name">El Magallanews <span style="font-size:10px;color:var(--warn);font-weight:400">(needs exploring)</span></div>
+            <div class="url">elmagallanews.cl &mdash; Cloudflare, no API</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <label class="block">Mode</label>
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="search" onclick="setMode('search')">Search</button>
+        <button class="mode-tab" data-mode="bulk" onclick="setMode('bulk')">Bulk</button>
+      </div>
+    </div>
+
+    <div id="query-section">
+      <div class="field-group">
+        <label class="block">Query</label>
+        <input type="text" id="query" placeholder="e.g. zona franca punta arenas">
+      </div>
+    </div>
+
+    <div>
+      <label class="block">Date range</label>
+      <div class="row">
+        <div class="field-group">
+          <label class="block" style="margin-bottom:3px">From</label>
+          <input type="date" id="date_from">
+        </div>
+        <div class="field-group">
+          <label class="block" style="margin-bottom:3px">To</label>
+          <input type="date" id="date_to">
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label class="block">Output format</label>
+      <div class="format-row">
+        <button class="format-btn active" data-fmt="csv" onclick="setFormat('csv')">CSV</button>
+        <button class="format-btn" data-fmt="jsonl" onclick="setFormat('jsonl')">JSONL</button>
+      </div>
+    </div>
+
+    <details>
+      <summary>Advanced</summary>
+      <div class="detail-body">
+        <div class="field-group">
+          <label class="block">Delay between requests (seconds)</label>
+          <input type="number" id="delay" value="1.5" min="0.5" max="10" step="0.5">
+        </div>
+      </div>
+    </details>
+
+    <button class="btn-scrape" id="scrape-btn" onclick="startScrape()">
+      Start scraping
+    </button>
+
+  </div>
+
+  <!-- RIGHT: output -->
+  <div class="main">
+
+    <div class="log-header">
+      <h2>Activity log</h2>
+      <button id="clear-btn" onclick="clearLog()">clear</button>
+    </div>
+
+    <div id="log">
+      <div class="log-line info">Ready. Configure sources and date range, then click Start scraping.</div>
+    </div>
+
+    <div id="result-box">
+      <div id="result-stats"></div>
+      <a id="download-link" class="btn-download" href="#" download>Download</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let currentMode = 'search';
+  let currentFormat = 'csv';
+  let running = false;
+  let evtSource = null;
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    const qs = document.getElementById('query-section');
+    qs.style.opacity = mode === 'search' ? '1' : '0.35';
+    qs.style.pointerEvents = mode === 'search' ? '' : 'none';
+  }
+
+  function setFormat(fmt) {
+    currentFormat = fmt;
+    document.querySelectorAll('.format-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === fmt));
+  }
+
+  function clearLog() {
+    document.getElementById('log').innerHTML = '';
+  }
+
+  function log(msg, cls = 'info') {
+    const el = document.getElementById('log');
+    const line = document.createElement('div');
+    line.className = `log-line ${cls}`;
+    line.textContent = msg;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function startScrape() {
+    if (running) { stopScrape(); return; }
+
+    const sources = [...document.querySelectorAll('input[name=sources]:checked')].map(c => c.value);
+    if (!sources.length) { log('Select at least one source.', 'error'); return; }
+
+    const query = document.getElementById('query').value.trim();
+    if (currentMode === 'search' && !query) { log('Enter a search query (or switch to Bulk mode).', 'warn'); return; }
+
+    const params = new URLSearchParams();
+    sources.forEach(s => params.append('sources', s));
+    if (currentMode === 'search' && query) params.set('query', query);
+    params.set('date_from', document.getElementById('date_from').value);
+    params.set('date_to', document.getElementById('date_to').value);
+    params.set('format', currentFormat);
+    params.set('delay', document.getElementById('delay').value);
+
+    clearLog();
+    document.getElementById('result-box').classList.remove('visible');
+    document.getElementById('scrape-btn').textContent = '⏹ Stop';
+    running = true;
+
+    log(`Starting — sources: ${sources.join(', ')} | mode: ${currentMode}${query ? ' | query: ' + query : ''}`);
+
+    evtSource = new EventSource('/scrape?' + params.toString());
+    let articleCount = 0;
+
+    evtSource.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+
+      if (data.type === 'log') {
+        const cls = data.level === 'error' ? 'error' : data.level === 'warn' ? 'warn' : 'info';
+        log(data.msg, cls);
+      } else if (data.type === 'progress') {
+        articleCount = data.total;
+        log(`  [${data.total}] ${data.title}`, 'prog');
+      } else if (data.type === 'done') {
+        done(data);
+      }
+    };
+
+    evtSource.onerror = function() {
+      if (running) {
+        log('Connection lost or stream ended.', 'warn');
+        resetBtn();
+      }
+    };
+  }
+
+  function done(data) {
+    evtSource && evtSource.close();
+    resetBtn();
+    if (data.count > 0) {
+      log(`Done — ${data.count} articles collected${data.fails ? ', ' + data.fails + ' failed URLs' : ''}.`, 'ok');
+      const box = document.getElementById('result-box');
+      document.getElementById('result-stats').innerHTML =
+        `<strong>${data.count}</strong> articles &mdash; ${data.file}`;
+      const link = document.getElementById('download-link');
+      link.href = '/download/' + data.file;
+      link.download = data.file;
+      box.classList.add('visible');
+    } else {
+      log('No articles collected. Check date range or query.', 'warn');
+    }
+  }
+
+  function stopScrape() {
+    evtSource && evtSource.close();
+    resetBtn();
+    log('Stopped by user.', 'warn');
+  }
+
+  function resetBtn() {
+    running = false;
+    document.getElementById('scrape-btn').textContent = 'Start scraping';
+  }
+</script>
+</body>
+</html>
