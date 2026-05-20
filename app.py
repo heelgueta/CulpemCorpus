@@ -2,6 +2,7 @@ import csv
 import json
 import logging
 import os
+import re
 import uuid
 from flask import Flask, Response, jsonify, render_template, request, send_file
 from flask import stream_with_context
@@ -150,14 +151,19 @@ def scrape():
             yield _sse({"type": "done", "count": 0, "file": None, "fails": fail_count})
             return
 
+        def clean_row(a):
+            row = {k: a.get(k, "") for k in ARTICLE_FIELDS}
+            # Collapse any whitespace (including \n from API excerpts stored in Yene DBs)
+            row["body_text"] = re.sub(r"\s+", " ", row["body_text"]).strip()
+            return row
+
         job_id = uuid.uuid4().hex[:10]
         if fmt == "jsonl":
             filename = f"culpem_{job_id}.jsonl"
             filepath = os.path.join(OUTPUT_DIR, filename)
             with open(filepath, "w", encoding="utf-8") as f:
                 for a in articles:
-                    f.write(json.dumps({k: a.get(k, "") for k in ARTICLE_FIELDS},
-                                       ensure_ascii=False) + "\n")
+                    f.write(json.dumps(clean_row(a), ensure_ascii=False) + "\n")
         else:
             filename = f"culpem_{job_id}.csv"
             filepath = os.path.join(OUTPUT_DIR, filename)
@@ -165,7 +171,7 @@ def scrape():
                 writer = csv.DictWriter(f, fieldnames=ARTICLE_FIELDS, extrasaction="ignore")
                 writer.writeheader()
                 for a in articles:
-                    writer.writerow({k: a.get(k, "") for k in ARTICLE_FIELDS})
+                    writer.writerow(clean_row(a))
 
         yield _sse({"type": "done", "count": len(articles),
                     "file": filename, "fails": fail_count})
