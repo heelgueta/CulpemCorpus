@@ -90,6 +90,7 @@
   .source-item .name { font-size: 13px; font-weight: 500; }
   .source-item .url { font-size: 11px; color: var(--muted); }
   .source-item .since { font-size: 10px; font-weight: 400; color: var(--muted); margin-left: 4px; }
+  .local-badge { font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 3px; margin-left: 5px; background: rgba(76,175,125,.15); color: var(--ok); border: 1px solid rgba(76,175,125,.3); vertical-align: middle; }
   .mode-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .mode-tab {
     flex: 1;
@@ -338,6 +339,13 @@
           <label class="block">Delay between requests (seconds)</label>
           <input type="number" id="delay" value="1.5" min="0.5" max="10" step="0.5">
         </div>
+        <div class="field-group" style="margin-top:10px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text)">
+            <input type="checkbox" id="use_local" checked style="accent-color:var(--ok);width:13px;height:13px">
+            Use local archive (YeneConservatio) if available
+          </label>
+          <div id="yene-note" style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4"></div>
+        </div>
       </div>
     </details>
 
@@ -372,6 +380,50 @@
   let currentFormat = 'csv';
   let running = false;
   let evtSource = null;
+  let yeneStatus = {};
+
+  // ── Yene local archive status ────────────────────────────────────────────
+  async function loadYeneStatus() {
+    try {
+      const res = await fetch('/yene_status');
+      if (!res.ok) return;
+      yeneStatus = await res.json();
+      applyYeneBadges();
+      updateYeneNote();
+    } catch (_) {}   // Yene not present — silent
+  }
+
+  function applyYeneBadges() {
+    document.querySelectorAll('input[name=sources]').forEach(cb => {
+      const sid  = cb.value;
+      const cov  = yeneStatus[sid];
+      const nameEl = cb.closest('.source-item')?.querySelector('.name');
+      if (!nameEl) return;
+      // Remove any existing badge
+      nameEl.querySelector('.local-badge')?.remove();
+      if (cov) {
+        const badge = document.createElement('span');
+        badge.className = 'local-badge';
+        badge.title = `Local archive: ${cov.min} → ${cov.max}  (${cov.count.toLocaleString()} art.)`;
+        badge.textContent = '🐋 local';
+        nameEl.appendChild(badge);
+      }
+    });
+  }
+
+  function updateYeneNote() {
+    const useLocal = document.getElementById('use_local').checked;
+    const note = document.getElementById('yene-note');
+    if (!useLocal) { note.textContent = 'Scraping online for all sources.'; return; }
+    const withLocal = Object.entries(yeneStatus).filter(([,v]) => v).map(([k]) => k);
+    if (!withLocal.length) {
+      note.textContent = 'No local archive found — YeneConservatio not detected in sibling folder.';
+    } else {
+      note.textContent = `Local archive available for: ${withLocal.join(', ')}.`;
+    }
+  }
+
+  document.getElementById('use_local')?.addEventListener('change', updateYeneNote);
 
   function setMode(mode) {
     currentMode = mode;
@@ -415,6 +467,7 @@
     params.set('date_to', document.getElementById('date_to').value);
     params.set('format', currentFormat);
     params.set('delay', document.getElementById('delay').value);
+    params.set('use_local', document.getElementById('use_local').checked ? '1' : '0');
 
     clearLog();
     document.getElementById('result-box').classList.remove('visible');
@@ -475,6 +528,8 @@
     running = false;
     document.getElementById('scrape-btn').textContent = 'Start scraping';
   }
+
+  loadYeneStatus();
 </script>
 </body>
 </html>
