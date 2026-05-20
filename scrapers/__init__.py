@@ -8,6 +8,7 @@ from .radiomagallanes import RadioMagallanesScraper
 from .pepenoticias import PepeNoticiasScraper
 from .dialogosur import DialogoSurScraper
 from .itvpatagonia import ItvPatagoniaScraper
+from .zonazero import ZonaZeroScraper
 
 _SCRAPERS = {
     "laprensaaustral": LaPrensaAustralScraper(),
@@ -20,6 +21,7 @@ _SCRAPERS = {
     "pepenoticias":    PepeNoticiasScraper(),
     "dialogosur":      DialogoSurScraper(),
     "itvpatagonia":    ItvPatagoniaScraper(),
+    "zonazero":        ZonaZeroScraper(),
 }
 
 
@@ -27,4 +29,4 @@ def get_scraper(source_id):
     return _SCRAPERS.get(source_id)
 
 
-__all__ = ["get_scraper"]
+__all__ = ["get_scraper", "_SCRAPERS"]

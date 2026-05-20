@@ -278,18 +278,25 @@
           </div>
         </label>
 
-        <label class="source-item" style="opacity:.4;cursor:not-allowed" title="Not supported — JS-rendered listing, locked proprietary CMS API. See scrapers/radiopolar.py.">
-          <input type="checkbox" name="sources" value="radiopolar" disabled>
+        <label class="source-item">
+          <input type="checkbox" name="sources" value="zonazero" checked>
           <div>
-            <div class="name">Radio Polar <span style="font-size:10px;color:var(--err);font-weight:400">(no soportado)</span></div>
-            <div class="url">radiopolar.com &mdash; necesita Playwright</div>
+            <div class="name">Zona Zero <span class="since">desde 2021</span></div>
+            <div class="url">zonazero.cl &mdash; WP API</div>
           </div>
         </label>
-        <label class="source-item" style="opacity:.4;cursor:not-allowed" title="Not supported — Cloudflare blocks access, WP REST API returns 404. See README.">
+        <label class="source-item" title="~10,000 articles via sitemap + Next.js data API. Only covers ~last 12 months — no historical archive available.">
+          <input type="checkbox" name="sources" value="radiopolar" checked>
+          <div>
+            <div class="name">Radio Polar <span class="since">~12 meses</span></div>
+            <div class="url">radiopolar.com &mdash; sitemap + Next.js API</div>
+          </div>
+        </label>
+        <label class="source-item" style="opacity:.4;cursor:not-allowed" title="Crawl-delay: 300 s (5 min per request) in robots.txt. No WP API. Sitemap unresponsive. Not feasible to scrape.">
           <input type="checkbox" name="sources" value="elmagallanews" disabled>
           <div>
-            <div class="name">El Magallanews <span style="font-size:10px;color:var(--warn);font-weight:400">(por explorar)</span></div>
-            <div class="url">elmagallanews.cl &mdash; Cloudflare, sin API</div>
+            <div class="name">El Magallanews <span style="font-size:10px;color:var(--err);font-weight:400">(no soportado)</span></div>
+            <div class="url">elmagallanews.cl &mdash; crawl-delay 300 s, sin API</div>
           </div>
         </label>
       </div>
