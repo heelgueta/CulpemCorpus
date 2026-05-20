@@ -35,8 +35,25 @@ logger = logging.getLogger(__name__)
 DATE_API = "https://elpinguino.com/v2/home/search"
 BASE     = "https://www.elpinguino.com"
 
-DISCOVERY_WORKERS = 10   # concurrent threads for the date API
-DISCOVERY_DELAY   = 0.3  # seconds between requests per worker
+DISCOVERY_WORKERS = 10
+DISCOVERY_DELAY   = 0.3
+
+
+def build_url(item, date_str):
+    """
+    Correct URL for an El Pingüino article.
+    Before 2014-04-01: /noticias/{ID}  (slug is empty, ID field present)
+    After  2014-04-01: /noticia/YYYY/MM/DD/{slug}
+    """
+    slug = item.get("post_slug", "")
+    if slug:
+        yyyy, mm, dd = date_str[:4], date_str[5:7], date_str[8:10]
+        return f"{BASE}/noticia/{yyyy}/{mm}/{dd}/{slug}"
+    else:
+        aid = item.get("ID", item.get("id", ""))
+        if aid:
+            return f"{BASE}/noticias/{aid}"
+        return f"{BASE}/noticias/unknown-{date_str}-{item.get('post_title','')[:20]}"
 
 
 def iter_dates(date_from, date_to):
@@ -202,9 +219,7 @@ class ElPinguinoScraper(BaseScraper):
             for date_str, item in (candidates[0] or []):
                 api_title  = item.get("post_title", "")
                 api_excerpt = item.get("post_excerpt", "")
-                slug       = item.get("post_slug", "")
-                yyyy, mm, dd = date_str[:4], date_str[5:7], date_str[8:10]
-                url        = f"{BASE}/noticia/{yyyy}/{mm}/{dd}/{slug}"
+                url = build_url(item, date_str)
 
                 result = self._fetch_body(url, delay=max(delay, self.min_delay))
                 if result:
@@ -239,9 +254,7 @@ class ElPinguinoScraper(BaseScraper):
                 for item in items:
                     api_title   = item.get("post_title", "")
                     api_excerpt = item.get("post_excerpt", "")
-                    slug        = item.get("post_slug", "")
-                    yyyy, mm, dd = date_str[:4], date_str[5:7], date_str[8:10]
-                    url         = f"{BASE}/noticia/{yyyy}/{mm}/{dd}/{slug}"
+                    url = build_url(item, date_str)
 
                     result = self._fetch_body(url, delay=max(delay, self.min_delay))
                     if result:
