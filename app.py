@@ -157,21 +157,39 @@ def scrape():
             row["body_text"] = re.sub(r"\s+", " ", row["body_text"]).strip()
             return row
 
-        job_id = uuid.uuid4().hex[:10]
+        job_id     = uuid.uuid4().hex[:10]
+        query_slug = re.sub(r"[^\w]+", "_", query.strip())[:40].strip("_") if query.strip() else "sin_query"
+        base_name  = f"culpem_{query_slug}_{job_id}"
+
         if fmt == "jsonl":
-            filename = f"culpem_{job_id}.jsonl"
+            filename = f"{base_name}.jsonl"
             filepath = os.path.join(OUTPUT_DIR, filename)
             with open(filepath, "w", encoding="utf-8") as f:
                 for a in articles:
                     f.write(json.dumps(clean_row(a), ensure_ascii=False) + "\n")
         else:
-            filename = f"culpem_{job_id}.csv"
+            filename = f"{base_name}.csv"
             filepath = os.path.join(OUTPUT_DIR, filename)
             with open(filepath, "w", encoding="utf-8-sig", newline="") as f:
                 writer = csv.DictWriter(f, fieldnames=ARTICLE_FIELDS, extrasaction="ignore")
                 writer.writeheader()
                 for a in articles:
                     writer.writerow(clean_row(a))
+
+        import datetime
+        meta = {
+            "created_at": datetime.datetime.utcnow().isoformat() + "Z",
+            "query":      query,
+            "sources":    sources,
+            "date_from":  date_from or None,
+            "date_to":    date_to   or None,
+            "format":     fmt,
+            "n_articles": len(articles),
+            "n_failed":   fail_count,
+            "file":       filename,
+        }
+        with open(os.path.join(OUTPUT_DIR, f"{base_name}.json"), "w", encoding="utf-8") as f:
+            json.dump(meta, f, ensure_ascii=False, indent=2)
 
         yield _sse({"type": "done", "count": len(articles),
                     "file": filename, "fails": fail_count})
@@ -186,6 +204,8 @@ def scrape():
 @app.route("/download/<filename>")
 def download(filename):
     if not filename.startswith("culpem_") or ".." in filename or "/" in filename:
+        return "Not found", 404
+    if not filename.endswith((".csv", ".jsonl", ".json")):
         return "Not found", 404
     filepath = os.path.join(OUTPUT_DIR, filename)
     if not os.path.exists(filepath):
